@@ -1,83 +1,136 @@
-// Espera a que el DOM esté completamente cargado
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar cuando Office esté listo
-    Office.onReady((reason) => {
-        if (reason === Office.HostType.Excel) {
-            console.log('Excel Web Add-in cargado correctamente');
-            inicializarComplemento();
-        }
-    });
+// Guardar contexto global
+let excelContext = null;
+
+// Espera a que Office.js esté listo
+Office.onReady((reason) => {
+    console.log('Office.onReady ejecutado:', reason);
+    
+    if (reason === Office.HostType.Excel) {
+        console.log('✅ Excel Web Add-in iniciado correctamente');
+        inicializarComplemento();
+    } else {
+        console.error('❌ No es Excel');
+    }
 });
 
+/**
+ * Inicializar el complemento
+ */
 function inicializarComplemento() {
-    // Actualizar la hora cada segundo
-    actualizarHoraDisplay();
-    setInterval(actualizarHoraDisplay, 1000);
+    console.log('Inicializando complemento...');
     
-    // Asignar eventos a los botones
-    document.getElementById('btnInsertarHora').onclick = insertarHora;
-    document.getElementById('btnInsertarFecha').onclick = insertarFechaHora;
+    try {
+        // Actualizar la hora cada segundo
+        actualizarHoraDisplay();
+        setInterval(actualizarHoraDisplay, 1000);
+        
+        // Asignar eventos a los botones
+        const btnHora = document.getElementById('btnInsertarHora');
+        const btnFecha = document.getElementById('btnInsertarFecha');
+        
+        if (btnHora) {
+            btnHora.addEventListener('click', insertarHora);
+            console.log('✅ Botón de hora asignado');
+        } else {
+            console.error('❌ No se encontró btnInsertarHora');
+        }
+        
+        if (btnFecha) {
+            btnFecha.addEventListener('click', insertarFechaHora);
+            console.log('✅ Botón de fecha asignado');
+        } else {
+            console.error('❌ No se encontró btnInsertarFecha');
+        }
+        
+        console.log('✅ Complemento inicializado correctamente');
+    } catch (error) {
+        console.error('❌ Error en inicializarComplemento:', error);
+        mostrarEstatus('Error al inicializar: ' + error.message, 'error');
+    }
 }
 
 /**
  * Actualiza la pantalla de la hora actual
  */
 function actualizarHoraDisplay() {
-    const ahora = new Date();
-    const horas = String(ahora.getHours()).padStart(2, '0');
-    const minutos = String(ahora.getMinutes()).padStart(2, '0');
-    const segundos = String(ahora.getSeconds()).padStart(2, '0');
-    
-    const horaFormato = `${horas}:${minutos}:${segundos}`;
-    document.getElementById('horaActual').textContent = horaFormato;
+    try {
+        const ahora = new Date();
+        const horas = String(ahora.getHours()).padStart(2, '0');
+        const minutos = String(ahora.getMinutes()).padStart(2, '0');
+        const segundos = String(ahora.getSeconds()).padStart(2, '0');
+        
+        const horaFormato = `${horas}:${minutos}:${segundos}`;
+        const elemento = document.getElementById('horaActual');
+        
+        if (elemento) {
+            elemento.textContent = horaFormato;
+        } else {
+            console.error('❌ No se encontró elemento horaActual');
+        }
+    } catch (error) {
+        console.error('❌ Error en actualizarHoraDisplay:', error);
+    }
 }
 
 /**
- * Inserta la hora en la celda activa (según formato seleccionado)
+ * Inserta la hora en la celda activa
  */
 async function insertarHora() {
+    console.log('Insertando hora...');
+    
     try {
-        const formato = document.querySelector('input[name="formato"]:checked').value;
+        const formato = document.querySelector('input[name="formato"]:checked');
+        
+        if (!formato) {
+            mostrarEstatus('❌ Selecciona un formato', 'error');
+            return;
+        }
+        
+        const tipoFormato = formato.value;
+        console.log('Formato seleccionado:', tipoFormato);
         
         await Excel.run(async (context) => {
+            console.log('Excel.run iniciado');
+            
             const cell = context.application.activeCell;
             cell.load('address');
+            
+            await context.sync();
+            console.log('Celda activa:', cell.address);
             
             // Obtener la hora actual
             const ahora = new Date();
             let valor;
             
-            switch(formato) {
+            switch(tipoFormato) {
                 case 'hora':
-                    // hh:mm:ss
                     valor = formatearHora(ahora);
                     break;
                 case 'horaAmPm':
-                    // hh:mm AM/PM
                     valor = formatearHoraAmPm(ahora);
                     break;
                 case 'horaMinutos':
-                    // mm:ss
                     valor = formatearMinutosSegundos(ahora);
                     break;
                 case 'fechaHora':
-                    // dd/mm/yyyy hh:mm:ss
                     valor = formatearFechaHora(ahora);
                     break;
                 default:
                     valor = formatearHora(ahora);
             }
             
+            console.log('Valor a insertar:', valor);
+            
             // Insertar valor en la celda activa
             cell.values = [[valor]];
             
             await context.sync();
             
-            mostrarEstatus(`✅ Hora insertada en celda ${cell.address}`, 'success');
-            console.log('Hora insertada:', valor);
+            console.log('✅ Hora insertada exitosamente');
+            mostrarEstatus(`✅ Hora insertada en ${cell.address}: ${valor}`, 'success');
         });
     } catch (error) {
-        console.error('Error al insertar hora:', error);
+        console.error('❌ Error al insertar hora:', error);
         mostrarEstatus('❌ Error: ' + error.message, 'error');
     }
 }
@@ -86,22 +139,32 @@ async function insertarHora() {
  * Inserta la fecha y hora en la celda activa
  */
 async function insertarFechaHora() {
+    console.log('Insertando fecha y hora...');
+    
     try {
         await Excel.run(async (context) => {
+            console.log('Excel.run iniciado (FechaHora)');
+            
             const cell = context.application.activeCell;
             cell.load('address');
             
+            await context.sync();
+            console.log('Celda activa:', cell.address);
+            
             const ahora = new Date();
             const valor = formatearFechaHora(ahora);
+            
+            console.log('Valor a insertar:', valor);
             
             cell.values = [[valor]];
             
             await context.sync();
             
-            mostrarEstatus(`✅ Fecha y hora insertadas en ${cell.address}`, 'success');
+            console.log('✅ Fecha y hora insertadas exitosamente');
+            mostrarEstatus(`✅ Fecha y hora insertadas en ${cell.address}: ${valor}`, 'success');
         });
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Error al insertar fecha y hora:', error);
         mostrarEstatus('❌ Error: ' + error.message, 'error');
     }
 }
@@ -147,8 +210,15 @@ function formatearFechaHora(fecha) {
  * Muestra mensaje de estado
  */
 function mostrarEstatus(mensaje, tipo = 'info') {
+    console.log('Estado:', mensaje);
+    
     const statusDiv = document.getElementById('status');
     const statusText = document.getElementById('statusText');
+    
+    if (!statusDiv || !statusText) {
+        console.error('❌ Elementos de status no encontrados');
+        return;
+    }
     
     statusDiv.className = 'status-section ' + tipo;
     statusText.textContent = mensaje;
@@ -158,3 +228,9 @@ function mostrarEstatus(mensaje, tipo = 'info') {
         statusText.textContent = '';
     }, 5000);
 }
+
+/**
+ * Log para debugging
+ */
+console.log('✅ taskpane.js cargado correctamente');
+console.log('Esperando Office.onReady...');

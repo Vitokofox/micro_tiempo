@@ -5,8 +5,6 @@
     <title>Insertar Hora Actual</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="taskpane.css">
-    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-    <script src="taskpane.js"></script>
 </head>
 <body>
     <div id="content" role="main">
@@ -56,5 +54,9 @@
             <p>📌 Selecciona una celda y haz clic en el botón para insertar la hora.</p>
         </div>
     </div>
+
+    <!-- IMPORTANTE: office.js DEBE cargar ANTES que taskpane.js -->
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script src="taskpane.js"></script>
 </body>
 </html>
