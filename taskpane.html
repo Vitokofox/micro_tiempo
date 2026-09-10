@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Insertar Hora Actual</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="taskpane.css">
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script src="taskpane.js"></script>
+</head>
+<body>
+    <div id="content" role="main">
+        <div class="header">
+            <h2>⏰ Insertar Hora Actual</h2>
+        </div>
+
+        <div class="info-section">
+            <p id="horaActual" class="hora-display">--:--:--</p>
+        </div>
+
+        <div class="button-section">
+            <button id="btnInsertarHora" class="btn btn-primary">
+                Insertar Hora en Celda Activa
+            </button>
+            <button id="btnInsertarFecha" class="btn btn-secondary">
+                Insertar Fecha + Hora
+            </button>
+        </div>
+
+        <div class="options-section">
+            <h3>Opciones de Formato:</h3>
+            <label class="option-label">
+                <input type="radio" name="formato" value="hora" checked>
+                Hora (hh:mm:ss)
+            </label>
+            <label class="option-label">
+                <input type="radio" name="formato" value="horaAmPm">
+                Hora (hh:mm AM/PM)
+            </label>
+            <label class="option-label">
+                <input type="radio" name="formato" value="horaMinutos">
+                Solo minutos:segundos (mm:ss)
+            </label>
+            <label class="option-label">
+                <input type="radio" name="formato" value="fechaHora">
+                Fecha + Hora (dd/mm/yyyy hh:mm:ss)
+            </label>
+        </div>
+
+        <div class="status-section" id="status">
+            <p id="statusText"></p>
+        </div>
+
+        <div class="info-footer">
+            <p>💡 <strong>Consejo:</strong> La hora se actualizará cada segundo.</p>
+            <p>📌 Selecciona una celda y haz clic en el botón para insertar la hora.</p>
+        </div>
+    </div>
+</body>
+</html>
